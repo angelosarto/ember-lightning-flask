@@ -6,5 +6,10 @@ applications:
   timeout: 180
   memory: 96M
 
+  env:
+    APP_NAME: my-lightning-app
+    URL_PREFIX: /mla
+#    APP_MAP: {"url":"my-app-name", "mla":"my-lightning-app"}
+
   services:
     - redis
