@@ -7,9 +7,14 @@ applications:
   memory: 96M
 
   env:
-    APP_NAME: my-lightning-app
-    URL_PREFIX: /mla
-#    APP_MAP: {"url":"my-app-name", "mla":"my-lightning-app"}
+    # see config/example/env.sh for documentation on the env vars
+    APP_NAME: "AUTO"
+    #APP_URL: "mla"
+    #APP_NAME: "my-lightning-app"
+    #REDIS_PREFIX: "my-pre:"
+    REDIS_SUFFIX: ":index"
+    #REDIS_KEY: "my-pre:my-lightning-app:index"
+    APP_MAP: "{"some-url":{"app_name" : "my-lightning-app","redis_key": "my-pre:my-lightning-app:index"},"some-other-url":{"app_name" : "my-lightning-app2"}}"
 
   services:
     - redis

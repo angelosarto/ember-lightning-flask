@@ -14,19 +14,21 @@ class Configuration:
 
         self.application_port = None
         self.instance_id = None
+
         self.redis_host = None
         self.redis_port = None
         self.redis_secret = None
-        self.this_app_name = 'local'
 
         self.lightning_app_map = None
-        self.lightning_app_name = None
-        self.lightning_url = ""
-        self.lightning_app_automatic = False
 
+        self.lightning_app_automatic = False
+        self.redis_prefix = ""
+        self.redis_suffix = ""
+
+    # Try to load environment from Direct environment variables (e.g. Docker, standalone), then CloudFoundry
+    # then locally from the config/active directory
+    # finally, load the environment only variables
     def load(self):
-        # Try to load environment from Direct environment variables (e.g. Docker, standalone), then CloudFoundry
-        # then locally from the config/active directory
         if os.getenv('VCAP_APPLICATION'):
             self.config_source = ConfigSource.CLOUD_FOUNDRY
         elif os.getenv('PORT'):
@@ -70,17 +72,27 @@ class Configuration:
             return False
 
         # Load Common Environment Variables
+        return self.load_common_env_variables()
+
+    def load_common_env_variables(self):
+
+        self.redis_prefix = os.getenv("REDIS_PREFIX", "")
+        self.redis_suffix = os.getenv("REDIS_SUFFIX", "")
+
         self.lightning_app_map = os.getenv("APP_MAP", None)
         if self.lightning_app_map is not None:
             self.lightning_app_map = json.loads(self.lightning_app_map)
         else:
-            self.lightning_app_name = os.getenv("APP_NAME", None)
-            self.lightning_url = os.getenv("URL_PREFIX", "")
-            if self.lightning_app_name == "AUTO":
+            single_app_name = os.getenv("APP_NAME", None)
+            if single_app_name == "AUTO":
                 self.lightning_app_automatic = True
+            else:
+                single_url = os.getenv("APP_URL", "")
+                single_key = os.getenv("REDIS_KEY", self.redis_prefix+single_app_name+self.redis_suffix)
+                self.lightning_app_map = {single_url: {"app_name": single_app_name, "redis_key": single_key}}
 
-        if self.lightning_app_map is None and self.lightning_app_name is None:
+        if self.lightning_app_map is None and self.lightning_app_automatic is False:
             print("No Lightning application name(s) specified, set APP_NAME or APP_MAP environment variables")
             return False
-        return True
 
+        return True
