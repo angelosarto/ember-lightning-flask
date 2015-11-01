@@ -27,10 +27,10 @@ class Configuration:
     def load(self):
         # Try to load environment from Direct environment variables (e.g. Docker, standalone), then CloudFoundry
         # then locally from the config/active directory
-        if os.getenv('PORT'):
-            self.config_source = ConfigSource.ENV_VARS
-        elif os.getenv('VCAP_APP_PORT'):
+        if os.getenv('VCAP_APPLICATION'):
             self.config_source = ConfigSource.CLOUD_FOUNDRY
+        elif os.getenv('PORT'):
+            self.config_source = ConfigSource.ENV_VARS
         else:
             try:
                 from config.envutils import source_bash_file
@@ -49,7 +49,7 @@ class Configuration:
             self.redis_secret = os.getenv("REDIS_SECRET", "")
 
         elif self.config_source == ConfigSource.CLOUD_FOUNDRY:
-            self.application_port = int(os.getenv("VCAP_APP_PORT") or 0)
+            self.application_port = int(os.getenv("PORT") or 0)
             self.instance_id = int(os.getenv("CF_INSTANCE_INDEX") or 0)
             if os.environ.get('VCAP_SERVICES'):
                 json_services = json.loads(os.environ['VCAP_SERVICES'])
